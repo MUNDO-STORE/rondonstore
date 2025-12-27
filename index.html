@@ -445,7 +445,7 @@
         const maxTries = 3; 
         let spinning = false;
         let currentRotation = 0; 
-        const lockTime = 60; // 60 segundos
+        const lockTime = 60;
 
         const roulette = document.getElementById("roulette");
         const spinBtn = document.getElementById("spinBtn");
@@ -457,19 +457,26 @@
         const soundCaixa = document.getElementById("caixaSound");
         const soundWin = document.getElementById("winSound");
 
-        if (soundRoleta) soundRoleta.loop = true;
+        // FUNÇÃO DE SEGURANÇA: Destravar áudio no primeiro clique do usuário
+        function unlockAudio() {
+            soundRoleta.play().then(() => soundRoleta.pause()).catch(() => {});
+            soundCaixa.play().then(() => soundCaixa.pause()).catch(() => {});
+            soundWin.play().then(() => soundWin.pause()).catch(() => {});
+            document.removeEventListener('click', unlockAudio);
+        }
+        document.addEventListener('click', unlockAudio);
 
-        // Som nos botões de compra
-        document.querySelectorAll('#servicos-vendas .buy-btn').forEach(button => {
+        // Som de caixa ao clicar em qualquer botão de compra
+        document.querySelectorAll('.buy-btn').forEach(button => {
             button.addEventListener('click', () => {
-                if (soundCaixa) {
+                try {
                     soundCaixa.currentTime = 0;
-                    soundCaixa.play().catch(() => {});
-                }
+                    soundCaixa.play();
+                } catch(e) {}
             });
         });
 
-        const greenSegments = [0, 2, 4]; // Fatias verdes
+        const greenSegments = [0, 2, 4];
 
         function startCountdown() {
             let timeLeft = lockTime;
@@ -500,35 +507,35 @@
             spinBtn.textContent = "SORTEANDO...";
             result.textContent = "";
 
-            if (soundRoleta) {
+            // Tocar som da roleta
+            try {
+                soundRoleta.loop = true;
                 soundRoleta.currentTime = 0;
-                soundRoleta.play().catch(() => {});
-            }
+                soundRoleta.play();
+            } catch(e) {}
 
-            // Lógica de Giro Contínuo
-            const segment = Math.floor(Math.random() * 6); // Escolhe fatia 0 a 5
-            const segmentDegrees = segment * 60; // Cada fatia tem 60 graus
-            
-            // Adiciona 5 voltas (1800 deg) + a posição da fatia ao total atual
+            const segment = Math.floor(Math.random() * 6); 
+            const segmentDegrees = segment * 60; 
             currentRotation += 1800 + segmentDegrees;
             
-            // Gira a roleta (negativo para girar sentido horário corretamente com o conic-gradient)
             roulette.style.transform = `rotate(-${currentRotation}deg)`;
 
             setTimeout(() => {
-                if (soundRoleta) {
+                // Parar som da roleta
+                try {
                     soundRoleta.pause();
                     soundRoleta.currentTime = 0;
-                }
+                } catch(e) {}
 
                 tries++;
                 triesEl.textContent = tries;
 
                 if (greenSegments.includes(segment)) {
-                    if (soundWin) {
+                    // Tocar som de vitória
+                    try {
                         soundWin.currentTime = 0;
-                        soundWin.play().catch(() => {});
-                    }
+                        soundWin.play();
+                    } catch(e) {}
 
                     result.style.color = "#00ff88";
                     result.innerHTML = "🟢 PARABÉNS! VOCÊ GANHOU! SÓ PAGA R$4,00";
